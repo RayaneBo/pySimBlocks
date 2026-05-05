@@ -29,6 +29,7 @@ from pySimBlocks.core.model import Model
 from pySimBlocks.core.scheduler import Scheduler
 from pySimBlocks.core.task import Task
 from pySimBlocks.core import signal_bus
+from pySimBlocks.core.signal import Signal
 
 
 class Simulator:
@@ -97,7 +98,6 @@ class Simulator:
         for block in self.output_order:
             try:
                 block.initialize(self.t)
-                self._propagate_from(block)
             except Exception as e:
                 raise RuntimeError(
                     f"Error during initialization of block '{block.name}': {e}"
@@ -141,13 +141,6 @@ class Simulator:
             task.accumulate(dt_scheduler)
 
         active_tasks = self.scheduler.active_tasks()
-
-        # PHASE 1 — outputs
-        for task in active_tasks:
-            dt_task = task.accumulated_dt 
-            for block in task.output_blocks:
-                block.output_update(self.t, dt_task)
-                self._propagate_from(block)
 
         # PHASE 2 — states
         for task in active_tasks:
@@ -319,13 +312,7 @@ class Simulator:
 
     def _propagate_from(self, block: Block) -> None:
         """Forward outputs of block to its direct downstream inputs."""
-        blocks = self.model.blocks
-        for (src, dst) in self.model.downstream_of(block.name):
-            _, src_port = src
-            dst_block, dst_port = dst
-            value = block.outputs[src_port]
-            if value is not None:
-                blocks[dst_block].inputs[dst_port] = value
+        pass
 
     def _log(self, variables_to_log: List[str]) -> None:
         """Log specified variables at the current timestep.
@@ -352,7 +339,7 @@ class Simulator:
                     f"[Simulator] Cannot log '{var}' at t={self.t_step}: value is None."
                 )
 
-            arr = np.asarray(value)
+            arr = np.asarray(value.value)
 
             if arr.ndim != 2:
                 raise RuntimeError(
