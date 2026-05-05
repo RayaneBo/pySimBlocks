@@ -23,6 +23,7 @@ from __future__ import annotations
 import numpy as np
 
 from pySimBlocks.core.block import Block
+from pySimBlocks.core.signal import Signal
 
 
 class Sum(Block):
@@ -78,9 +79,9 @@ class Sum(Block):
         self.num_inputs = len(self.signs)
 
         for i in range(self.num_inputs):
-            self.inputs[f"in{i+1}"] = None
+            self.inputs[f"in{i+1}"] = Signal()
 
-        self.outputs["out"] = None
+        self.outputs["out"] = Signal()
 
 
     # --------------------------------------------------------------------------
@@ -97,7 +98,7 @@ class Sum(Block):
             self.outputs["out"] = None
             return
 
-        self.outputs["out"] = self._compute_output()
+        self.outputs["out"].value = self._compute_output()
 
     def output_update(self, t: float, dt: float) -> None:
         """Compute the signed element-wise sum and write it to the output port.
@@ -124,8 +125,8 @@ class Sum(Block):
                     f"[{self.name}] Input '{key}' must be a 2D array. Got ndim={a.ndim} with shape {a.shape}."
                 )
             arrays.append(a)
-
-        self.outputs["out"] = self._compute_output(prevalidated_arrays=arrays)
+            
+        self.outputs["out"].value = self._compute_output(prevalidated_arrays=arrays)
 
     def state_update(self, t: float, dt: float) -> None:
         """No-op: Sum is a stateless block.
@@ -173,7 +174,12 @@ class Sum(Block):
     def _compute_output(self, prevalidated_arrays: list[np.ndarray] | None = None) -> np.ndarray:
         """Compute the signed element-wise sum with scalar-only broadcasting."""
         if prevalidated_arrays is None:
-            arrays = [np.asarray(self.inputs[f"in{i+1}"], dtype=float) for i in range(self.num_inputs)]
+            arrays = []
+            for i in range(self.num_inputs):
+                u = self.inputs[f"in{i+1}"]
+                if isinstance(u, Signal):
+                    u = u.value
+                arrays.append(np.asarray(u, dtype=float))
         else:
             arrays = prevalidated_arrays
 

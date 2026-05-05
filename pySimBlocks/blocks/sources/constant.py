@@ -23,6 +23,7 @@ from __future__ import annotations
 import numpy as np
 from numpy.typing import ArrayLike
 from pySimBlocks.core.block_source import BlockSource
+from pySimBlocks.core.signal import Signal
 
 
 class Constant(BlockSource):
@@ -64,7 +65,7 @@ class Constant(BlockSource):
         arr = self._to_2d_array("value", value, dtype=float)
 
         self.value = arr
-        self.outputs["out"] = arr.copy()
+        self.outputs["out"] = Signal(arr.copy())
 
 
     # --------------------------------------------------------------------------
