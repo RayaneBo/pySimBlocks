@@ -21,6 +21,7 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict
+from pySimBlocks.core.signal import Signal
 
 import numpy as np
 
@@ -64,10 +65,10 @@ class Block(ABC):
             raise ValueError(f"[{self.name}] sample_time must be > 0.")
         self.sample_time = sample_time
  
-        self.inputs: Dict[str, np.ndarray] = {}
-        self.outputs: Dict[str, np.ndarray] = {}
-        self.state: Dict[str, np.ndarray] = {}
-        self.next_state: Dict[str, np.ndarray] = {}
+        self.inputs: Dict[str, Signal] = {}
+        self.outputs: Dict[str, Signal] = {}
+        self.state: Dict[str, Signal] = {}
+        self.next_state: Dict[str, Signal] = {}
  
         self._effective_sample_time = 0.
 
@@ -141,11 +142,64 @@ class Block(ABC):
         Called by the simulator after all blocks have completed state_update.
         """
         for key, value in self.next_state.items():
-            self.state[key] = np.copy(value)
+            if isinstance(value, Signal):
+                self.state[key].value = value.value
+            else:
+                # Handle lists (e.g., Delay buffer) and numpy arrays
+                if isinstance(value, list):
+                    self.state[key] = [item.copy() if isinstance(item, np.ndarray) else item for item in value]
+                else:
+                    self.state[key] = np.copy(value)
 
     def finalize(self):
         """Clean up resources at the end of the simulation."""
 
+    # --------------------------------------------------------------------------
+    # Getters Methods
+    # --------------------------------------------------------------------------
+
+    def get_input(self, key: str) -> float:
+        #try:
+        return self.inputs[key].value
+        #except KeyError:
+            #print('test')
+
+    def get_output(self, key: str) -> float:
+        return self.outputs[key].value
+
+    def get_state(self, key: str) -> float:
+        return self.state[key].value
+
+    def get_next_state(self, key: str) -> float:
+        return self.next_state[key].value
+
+    # --------------------------------------------------------------------------
+    # Setters Methods
+    # --------------------------------------------------------------------------
+
+    def set_input(self, key: str, inp: float):
+        if not key in self.inputs.keys():
+            self.inputs[key] = Signal(inp)
+        else:
+            self.inputs[key].value = inp
+
+    def set_output(self, key: str, out: float):
+        if not key in self.outputs.keys():
+            self.outputs[key] = Signal(out)
+        else:
+            self.outputs[key].value = out
+
+    def set_state(self, key: str, sta: float):
+        if not key in self.state.keys():
+            self.state[key] = Signal(sta)
+        else:
+            self.state[key].value = sta
+
+    def set_next_state(self, key: str, nxt_sta: float):
+        if not key in self.next_state.keys():
+            self.next_state[key] = Signal(nxt_sta)
+        else:
+            self.next_state[key].value = nxt_sta
 
     # --------------------------------------------------------------------------
     # Private Methods
