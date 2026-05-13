@@ -28,6 +28,7 @@ from typing import Any, Callable, Dict, List
 import numpy as np
 
 from pySimBlocks.core.block import Block
+from pySimBlocks.core.signal import Signal
 
 
 class AlgebraicFunction(Block):
@@ -87,8 +88,8 @@ class AlgebraicFunction(Block):
         if len(self.output_keys) == 0:
             raise ValueError(f"[{self.name}] output_keys cannot be empty.")
 
-        self.inputs: Dict[str, np.ndarray | None] = {k: None for k in self.input_keys}
-        self.outputs: Dict[str, np.ndarray | None] = {k: None for k in self.output_keys}
+        self.inputs: Dict[str, Signal | None] = {k: Signal() for k in self.input_keys}
+        self.outputs: Dict[str, Signal | None] = {k: Signal() for k in self.output_keys}
 
         self._in_shapes: Dict[str, tuple[int, int] | None] = {k: None for k in self.input_keys}
         self._out_shapes: Dict[str, tuple[int, int] | None] = {k: None for k in self.output_keys}
@@ -190,7 +191,7 @@ class AlgebraicFunction(Block):
                 f"(expected {self.output_keys}, got {list(out.keys())})."
             )
         for k in self.output_keys:
-            self.outputs[k] = out[k]
+            self.set_output(k, out[k])
 
     def output_update(self, t: float, dt: float) -> None:
         """Call the user function and write outputs to the output ports.
@@ -204,14 +205,14 @@ class AlgebraicFunction(Block):
             TypeError: If any input or output is not a numpy array.
             ValueError: If any input or output is not 2D, or if shapes changed.
         """
-        kwargs: Dict[str, np.ndarray] = {}
+        kwargs: Dict[str, Signal] = {}
         for k in self.input_keys:
-            u = self.inputs[k]
+            u = self.get_input(k)
             if u is None:
                 raise RuntimeError(f"[{self.name}] input '{k}' is not set.")
             u = np.asarray(u)
             self._check_freeze_shape("input", k, u, self._in_shapes)
-            kwargs[k] = u
+            kwargs[k].value = u
 
         out = self._call_func(t, dt, **kwargs)
 
@@ -219,7 +220,7 @@ class AlgebraicFunction(Block):
             y = out[k]
             y = np.asarray(y)
             self._check_freeze_shape("output", k, y, self._out_shapes)
-            self.outputs[k] = y
+            self.set_output(k, y)
 
     def state_update(self, t: float, dt: float) -> None:
         """No-op: AlgebraicFunction is a stateless block.
@@ -253,7 +254,7 @@ class AlgebraicFunction(Block):
             )
 
         for k in self.output_keys:
-            y = out[k]
+            y = out[k].value
             if not isinstance(y, np.ndarray):
                 raise RuntimeError(f"{self.name}: output '{k}' is not a numpy array")
             if y.ndim > 2:
