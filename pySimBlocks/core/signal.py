@@ -19,7 +19,28 @@
 # ******************************************************************************
 
 class Signal:
+    """A lightweight container for a single simulation signal value.
+
+    Used to pass data between blocks through input/output/state ports.
+    All block ports (inputs, outputs, state, next_state) hold Signal instances,
+    allowing in-place value updates without dict reassignment.
+
+    Attributes:
+        value: The current value held by this signal. Can be a scalar float,
+            a numpy array, or None if not yet initialized.
+
+    Example:
+        >>> s = Signal(0.0)
+        >>> s.value
+        0.0
+        >>> s.value = 3.14
+    """
     __slots__ = ("value",)
 
     def __init__(self, value=None):
+        """Initialize a Signal.
+
+        Args:
+            value: Initial value for the signal. Defaults to None.
+        """
         self.value = value

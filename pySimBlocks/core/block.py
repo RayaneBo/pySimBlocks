@@ -159,18 +159,47 @@ class Block(ABC):
     # --------------------------------------------------------------------------
 
     def get_input(self, key: str) -> float:
-        #try:
+        """Return the current value of an input port.
+
+        Args:
+            key: Name of the input port.
+
+        Returns:
+            Current value of the signal on port ``key``.
+        """
         return self.inputs[key].value
-        #except KeyError:
-            #print('test')
 
     def get_output(self, key: str) -> float:
+        """Return the current value of an output port.
+
+        Args:
+            key: Name of the output port.
+
+        Returns:
+            Current value of the signal on port ``key``.
+        """
         return self.outputs[key].value
 
     def get_state(self, key: str) -> float:
+        """Return the current value of a state variable x[k].
+
+        Args:
+            key: Name of the state variable.
+
+        Returns:
+            Current value of the signal on state ``key``.
+        """
         return self.state[key].value
 
     def get_next_state(self, key: str) -> float:
+        """Return the pending value of a state variable x[k+1].
+
+        Args:
+            key: Name of the state variable.
+
+        Returns:
+            Pending value of the signal on next_state ``key``.
+        """
         return self.next_state[key].value
 
     # --------------------------------------------------------------------------
@@ -178,24 +207,48 @@ class Block(ABC):
     # --------------------------------------------------------------------------
 
     def set_input(self, key: str, inp: float):
+        """Set the value of an input port, creating the port if absent.
+
+        Args:
+            key: Name of the input port.
+            inp: Value to assign to the port signal.
+        """
         if not key in self.inputs.keys():
             self.inputs[key] = Signal(inp)
         else:
             self.inputs[key].value = inp
 
     def set_output(self, key: str, out: float):
+        """Set the value of an output port, creating the port if absent.
+
+        Args:
+            key: Name of the output port.
+            out: Value to assign to the port signal.
+        """
         if not key in self.outputs.keys():
             self.outputs[key] = Signal(out)
         else:
             self.outputs[key].value = out
 
     def set_state(self, key: str, sta: float):
+        """Set the value of a state variable x[k], creating it if absent.
+
+        Args:
+            key: Name of the state variable.
+            sta: Value to assign to the state signal.
+        """
         if not key in self.state.keys():
             self.state[key] = Signal(sta)
         else:
             self.state[key].value = sta
 
     def set_next_state(self, key: str, nxt_sta: float):
+        """Set the pending value of a state variable x[k+1], creating it if absent.
+
+        Args:
+            key: Name of the state variable.
+            nxt_sta: Value to assign to the next_state signal.
+        """
         if not key in self.next_state.keys():
             self.next_state[key] = Signal(nxt_sta)
         else:
