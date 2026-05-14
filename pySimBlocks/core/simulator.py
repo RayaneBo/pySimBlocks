@@ -29,6 +29,7 @@ from pySimBlocks.core.model import Model
 from pySimBlocks.core.scheduler import Scheduler
 from pySimBlocks.core.task import Task
 from pySimBlocks.core import signal_bus
+from pySimBlocks.core.signal import Signal
 
 
 class Simulator:
@@ -341,7 +342,7 @@ class Simulator:
                     f"[Simulator] Cannot log '{var}' at t={self.t_step}: value is None."
                 )
 
-            arr = np.asarray(value)
+            arr = np.asarray(value.value)
 
             if arr.ndim != 2:
                 raise RuntimeError(

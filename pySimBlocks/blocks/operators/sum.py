@@ -23,6 +23,7 @@ from __future__ import annotations
 import numpy as np
 
 from pySimBlocks.core.block import Block
+from pySimBlocks.core.signal import Signal
 
 
 class Sum(Block):

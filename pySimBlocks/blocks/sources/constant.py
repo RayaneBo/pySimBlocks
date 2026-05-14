@@ -23,6 +23,7 @@ from __future__ import annotations
 import numpy as np
 from numpy.typing import ArrayLike
 from pySimBlocks.core.block_source import BlockSource
+from pySimBlocks.core.signal import Signal
 
 
 class Constant(BlockSource):
