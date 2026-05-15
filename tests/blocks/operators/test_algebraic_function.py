@@ -56,7 +56,7 @@ def test_algebraic_function_matrix_support():
     blk.set_input("B", B)
     blk.output_update(0.0, 0.1)
 
-    assert np.allclose(blk.outputs["Y"], A @ B)
+    assert np.allclose(blk.get_output("Y"), A @ B)
     assert blk.get_output("Y").shape == (2, 1)
 
 
@@ -147,7 +147,7 @@ def test_algebraic_function_output_keys_mismatch_raises():
     blk = make_block(f, input_keys=("u",), output_keys=("y",))
     blk.initialize(0.0)
 
-    blk.set_inputs("u", np.array([[1.0]]))
+    blk.set_input("u", np.array([[1.0]]))
     with pytest.raises(RuntimeError) as err:
         blk.output_update(0.0, 0.1)
 

@@ -212,7 +212,7 @@ class AlgebraicFunction(Block):
                 raise RuntimeError(f"[{self.name}] input '{k}' is not set.")
             u = np.asarray(u)
             self._check_freeze_shape("input", k, u, self._in_shapes)
-            kwargs[k].value = u
+            kwargs[k] = u
 
         out = self._call_func(t, dt, **kwargs)
 
@@ -238,8 +238,12 @@ class AlgebraicFunction(Block):
 
     def _call_func(self, t: float, dt: float, **kwargs) -> Dict[str, np.ndarray]:
         """Invoke the user function and validate its output dict."""
+        unwrapped = {
+            k: (v.value if isinstance(v, Signal) else v)
+            for k, v in kwargs.items()
+        }
         try:
-            out = self._func(t, dt, **kwargs)
+            out = self._func(t, dt, **unwrapped)
         except Exception as e:
             raise RuntimeError(f"[{self.name}] function call error: {e}\n"
                                f"Must always return a dict with output keys: {self.output_keys}")
@@ -254,7 +258,7 @@ class AlgebraicFunction(Block):
             )
 
         for k in self.output_keys:
-            y = out[k].value
+            y = out[k]
             if not isinstance(y, np.ndarray):
                 raise RuntimeError(f"{self.name}: output '{k}' is not a numpy array")
             if y.ndim > 2:
